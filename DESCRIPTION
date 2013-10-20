@@ -1,0 +1,25 @@
+Package: cachecall
+Version: 0.0.1
+Date: 2013-10-18
+Description: Cache calls to the web
+Title: Cache calls to the web
+License: CC0
+Authors@R: c(person("Scott", "Chamberlain", role = c("aut", "cre"), email =
+    "myrmecocystus@gmail.com"), person("Carl", "Boettiger", role = c("aut",
+    "cre"), email = "cboettig@gmail.com"), person("Karthik", "Ram", role =
+    "aut"), person("Edmund", "Hart", role="aut"))
+LazyLoad: yes
+LazyData: yes
+Imports:
+    httr,
+    plyr,
+    rredis,
+    filehashSQLite,
+    digest
+Suggests:
+    testthat,
+    roxygen2,
+    alm,
+    rplos
+Collate:
+    'rediscache.r'
