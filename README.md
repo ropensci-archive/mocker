@@ -1,7 +1,7 @@
 cachecall
 =========
 
-Examples
+## Examples
 
 ### Get some dois via rplos
 
@@ -53,3 +53,34 @@ system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, backend="sqli
    user  system elapsed 
   0.253   0.001   0.254 
 ```
+
+
+## Explanation
+
+Here's the function inside this package that is like one we would use to make a web API call, with explanation.  The two additional arguments needed beyond whatever is already in a fxn are `cache` and `backend`. 
+
+```coffee
+foo <- function(doi, apikey, cache=FALSE, backend='local')
+{
+  # get api query ready
+  url <- 'http://alm.plos.org/api/v3/articles'
+  args <- compact(list(api_key = apikey, ids = paste(doi, collapse=",")))
+  
+  # create a key, using build_url from httr
+  cachekey <- makeKey(url, args)
+  
+  # if cache=TRUE, check for data in backend using key, if cache=FALSE, returns NULL
+  out <- suppressWarnings(goCache(cache, cachekey, backend))
+  
+  # if out=NULL, proceed to make call to web
+  if(!is.null(out)){ out } else
+  {  
+    tt <- GET(url, query=args)
+    stop_for_status(tt)
+    temp <- content(tt)
+    # If cache=TRUE, cache key and value in chosen backend, if cache=FALSE, passes with NULL
+    goSave(cache, cachekey, temp, backend)
+    temp
+  }
+}
+``` 
