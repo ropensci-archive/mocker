@@ -1,6 +1,22 @@
 cachecall
 =========
 
+## Install redis
+
+### using brew, works on osx at least
+
+or [their site](http://redis.io/download) for other options.
+
+```bash
+brew install redis
+```
+
+### if using redis options, remember to start redis
+
+```bash
+redis-server 
+```
+
 ## Examples
 
 ### Get some dois via rplos
