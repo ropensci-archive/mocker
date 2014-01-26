@@ -15,11 +15,12 @@ Imports:
     plyr,
     rredis,
     filehashSQLite,
-    digest
+    digest,
+    R.cache
 Suggests:
     testthat,
     roxygen2,
     alm,
     rplos
 Collate:
-    'rediscache.r'
+    'code.r'

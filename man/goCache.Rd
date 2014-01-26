@@ -2,7 +2,7 @@
 \alias{goCache}
 \title{Search for data in a chosen backend}
 \usage{
-  goCache(cache, key, backend)
+  goCache(cache, key, backend, path)
 }
 \arguments{
   \item{cache}{Logical}

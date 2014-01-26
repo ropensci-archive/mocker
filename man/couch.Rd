@@ -2,12 +2,14 @@
 \alias{couch}
 \title{Save results to chosen backend}
 \usage{
-  couch(x, y)
+  couch(x, y, db)
 }
 \arguments{
-  \item{x}{asd}
+  \item{x}{Object}
 
-  \item{y}{asdf}
+  \item{y}{Document ID}
+
+  \item{db}{Database name}
 }
 \description{
   Save results to chosen backend

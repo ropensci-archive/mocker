@@ -9,30 +9,40 @@
 #' @export
 #' @examples 
 #' # Get some DOIs via rplos
+#' library(rplos)
 #' dois <- searchplos(terms="*:*", fields='id', toquery='doc_type:full', limit=25)
-#' dois <- do.call(c, dois[,1])
+#' dois <- dois[,1]
 #' 
 #' # Using local storage
 #' foo(doi = dois, apikey="WQcDSXml2VSWx3P")
 #' 
-#' # Using local storage, the default, 1st run with cache=TRUE same as cache=FALSE, then 2nd time faster
+#' # Using local storage via digest::digest, the default, 1st run with cache=TRUE same as cache=FALSE, then 2nd time faster
 #' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=FALSE) )
-#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE) )
-#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE) )
+#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, path="~/scottscache/") )
+#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, path="~/scottscache/") )
+#' 
+#' # Using local storage via R.cache
+#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, backend="rcache") )
+#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, backend="rcache") )
 #' 
 #' # Using redis, redis should be a little bit faster
-#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P") )
 #' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, backend="redis") )
 #' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, backend="redis") )
 #' 
 #' # Using sqlite, quite a bit slower than local and redis
 #' dbCreate("foodb", type = "SQLite")
 #' db <- dbInit("foodb", type = "SQLite")
-#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P") )
 #' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, backend="sqlite") )
 #' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, backend="sqlite") )
+#' 
+#' # Using couchdb, slower than local and redis, about same speed as sqlite
+#' sofa_createdb("cachecall")
+#' db <- "cachecall"
+#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", db="cachecall") )
+#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, backend="couchdb") )
+#' system.time( foo(doi = dois, apikey="WQcDSXml2VSWx3P", cache=TRUE, backend="couchdb") )
 
-foo <- function(doi, apikey, cache=FALSE, backend='local')
+foo <- function(doi, apikey, cache=FALSE, backend='local', path)
 {
   # get api query ready
   url <- 'http://alm.plos.org/api/v3/articles'
@@ -42,7 +52,7 @@ foo <- function(doi, apikey, cache=FALSE, backend='local')
   cachekey <- makeKey(url, args)
   
   # if cache=TRUE, check for data in backend using key, if cache=FALSE, returns NULL
-  out <- suppressWarnings(goCache(cache, cachekey, backend))
+  out <- suppressWarnings(goCache(cache, cachekey, backend, path))
   
   # if out=NULL, proceed to make call to web
   if(!is.null(out)){ out } else
@@ -51,7 +61,7 @@ foo <- function(doi, apikey, cache=FALSE, backend='local')
     stop_for_status(tt)
     temp <- content(tt)
     # If cache=TRUE, cache key and value in chosen backend
-    goSave(cache, cachekey, temp, backend)
+    goSave(cache, cachekey, temp, backend, path)
     temp
   }
 }
@@ -62,11 +72,12 @@ foo <- function(doi, apikey, cache=FALSE, backend='local')
 #' @param key Key from url + args 
 #' @param backend One of local, redis, couchdb, mongodb, sqlite.
 #' @export
-goCache <- function(cache, key, backend)
+goCache <- function(cache, key, backend, path)
 {
-  backend <- match.arg(backend, choices=c('local', 'redis', 'couchdb', 'mongodb', 'sqlite'))
+  backend <- match.arg(backend, choices=c('local', 'rcache', 'redis', 'couchdb', 'mongodb', 'sqlite'))
   switch(backend,
-         local = goLocal(cache, key),
+         local = goLocal2(cache, key, path),
+         rcache = goRcache(cache, key),
          redis = goRedis(cache, key),
          sqlite = goSqlite(cache, key),
          couchdb = goCouch(cache, key),
@@ -79,27 +90,40 @@ goCache <- function(cache, key, backend)
 #' @param obj Object to save
 #' @param backend One of local, redis, memcached, couchdb, mongodb.
 #' @export
-goSave <- function(cache, key, obj, backend)
+goSave <- function(cache, key, obj, backend, path, ...)
 {
   if(cache){
-    backend <- match.arg(backend, choices=c('local', 'redis', 'couchdb', 'mongodb', 'sqlite'))
+    backend <- match.arg(backend, choices=c('local', 'rcache', 'redis', 'couchdb', 'mongodb', 'sqlite'))
     switch(backend,
-           local = local(obj, key),
-           redis = redisSet(key, obj),
+           local = local2(obj, key, path),
+           rcache = Rcache(obj, key),
+           redis = redis_save(key, obj),
            sqlite = sqlite(obj, key),
-           couchdb = suppressWarnings(couch(obj, key)),
+           couchdb = couch(obj, key, db=db),
            mongodb = "y")
   } else { NULL }
 }
 
+redis_save <- function(x, y){
+  tt <- suppressWarnings(tryCatch(redisConnect(), error=function(e) e))
+  if(is(tt, "simpleError")){
+    stop("Start redis. Go to your terminal/shell and type redis-server, then hit enter")
+  } else
+  {
+    redisSet(x, y)
+    redisClose()
+  }
+}
+
 #' Save results to chosen backend
-#' @param x asd
-#' @param y asdf
+#' @param x Object
+#' @param y Document ID
+#' @param db Database name
 #' @export
-couch <- function(x, y)
+couch <- function(x, y, db)
 {
-  sofa_createdb("cachecall")
-  sofa_writedoc(dbname="cachecall", doc=sprintf('{"data": %s}', toJSON(x)), docid=y)
+#   sofa_createdb("cachecall")
+  sofa_writedoc(dbname=db, doc=sprintf('{"data": %s}', toJSON(x)), docid=y)
 }
 
 #' Save results to chosen backend
@@ -145,6 +169,7 @@ goRedis <- function(cache, key)
     } else
     {
       nn <- redisGet(key)
+      redisClose()
       if(!is.null(nn)){ nn } else
       { NULL }
     }
@@ -206,14 +231,14 @@ goSqlite <- function(cache, key)
 goCouch <- function(cache, key)
 {
   if(cache){
-    tmp <- sofa_getdoc(dbname="cachecall", docid=key)
+    tmp <- sofa_getdoc(dbname=db, docid=key)
     if(any(names(tmp) %in% 'error')){ NULL } else
       { tmp }
   } else
   { NULL }
 }
 
-#' Get value from redis based on key
+#' Make a key from a API call (base url for call, plus arguments).
 #' @param url base url for an API
 #' @param args A list with named arguments
 #' @export
@@ -227,5 +252,70 @@ makeKey <- function(url, args)
 
 # cachecall environment
 cachecallCache <- new.env(hash=TRUE)
-# assign(as.character(meta[,1]), dir2, envir = rsnps:::rsnpsCache)
-# cache <- mget(ls(rsnps:::rsnpsCache), envir=rsnps:::rsnpsCache)
+
+
+#' Save results locally
+#' @import digest
+#' @param x Output from API call
+#' @param y Cache key
+#' @export
+local2 <- function(x, y, path="~/")
+{
+  hash <- digest::digest(y)
+  filepath <- paste(path, hash, ".rds", sep="")
+  saveRDS(object=x, file=filepath)
+}
+
+#' Get value from local storage based on key
+#' @import digest
+#' @param cache Logical
+#' @param key Key from url + args
+#' @examples \dontrun{
+#' key = "http://api.plos.org/search?q=author:Ethan%20White&rows=1&wt=json"
+#' path = "~/scottscache"
+#' goLocal2(TRUE, key, path)
+#' }
+#' @export
+goLocal2 <- function(cache, key, path="~/")
+{
+  if(cache){
+    hash <- digest::digest(key)
+    stored_hashes <- list.files(path, full.names=TRUE, pattern=".rds")
+    getname <- function(x) strsplit(x, "/")[[1]][length(strsplit(x, "/")[[1]])]
+    stored_hashes_match <- gsub("\\.rds", "", sapply(stored_hashes, getname, USE.NAMES=FALSE))
+    if(length(stored_hashes) == 0){
+      NULL 
+    } else
+    {  
+      tt <- stored_hashes[stored_hashes_match %in% hash]
+      if(identical(tt, character(0))){ NULL } else {
+        tmp <- readRDS(tt)
+        return( tmp )
+      }
+    }
+  } else { NULL }
+}
+
+#' Save locally using R.cache
+#' @import R.cache
+#' @param x Output from API call
+#' @param y Cache key
+#' @export
+Rcache <- function(x, y){
+  key
+  saveCache(object=x, key=y)
+}
+
+#' Get local results using R.cache
+#' @import R.cache
+#' @param cache Logical
+#' @param key Key from url + args
+#' @export
+goRcache <- function(cache, key){
+  if(cache){
+    tmp <- loadCache(key)
+    if(!is.null(tmp)){ NULL } else {
+      return( tmp )
+    }
+  } else { NULL }
+}

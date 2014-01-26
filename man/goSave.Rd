@@ -2,7 +2,7 @@
 \alias{goSave}
 \title{Save results to chosen backend}
 \usage{
-  goSave(cache, key, obj, backend)
+  goSave(cache, key, obj, backend, path, ...)
 }
 \arguments{
   \item{cache}{Logical}
