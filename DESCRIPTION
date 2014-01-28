@@ -1,8 +1,8 @@
-Package: cachecall
-Version: 0.0.1
-Date: 2013-10-18
-Description: Cache calls to the web
+Package: webcache
+Version: 0.0.5
+Date: 2014-01-27
 Title: Cache calls to the web
+Description: Cache calls to the web
 License: CC0
 Authors@R: c(person("Scott", "Chamberlain", role = c("aut", "cre"), email =
     "myrmecocystus@gmail.com"), person("Carl", "Boettiger", role = c("aut",
@@ -17,7 +17,8 @@ Imports:
     filehashSQLite,
     digest,
     R.cache,
-    rjson
+    rjson,
+    sofa
 Suggests:
     testthat,
     roxygen2,

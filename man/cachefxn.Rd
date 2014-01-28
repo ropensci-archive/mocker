@@ -20,7 +20,7 @@ Example function to demonstrate how webcache works.
 \examples{
 \dontrun_{
 # Define query
-q="science"
+q="theory"
 
 # local storage via digest::digest, the default, 1st run with cache=TRUE same as cache=FALSE, then 2nd time faster
 system.time( cachefxn(cache=FALSE) )
