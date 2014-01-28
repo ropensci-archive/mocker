@@ -16,11 +16,10 @@ Imports:
     rredis,
     filehashSQLite,
     digest,
-    R.cache
+    R.cache,
+    rjson
 Suggests:
     testthat,
     roxygen2,
     alm,
     rplos
-Collate:
-    'code.r'

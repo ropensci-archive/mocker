@@ -17,6 +17,13 @@ brew install redis
 redis-server 
 ```
 
+And a redis admin panel in browser is available from the Node.js library [redis-commander](https://github.com/joeferner/redis-commander)
+
+```bash
+sudo npm install -g redis-commander
+redis-commander
+```
+
 ## Examples
 
 ### Get some dois via rplos

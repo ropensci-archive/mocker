@@ -1,8 +1,8 @@
-\name{goRedis}
-\alias{goRedis}
-\title{goredis}
+\name{get_redis}
+\alias{get_redis}
+\title{Get redis cached data}
 \usage{
-  goRedis(cache, key)
+get_redis(cache, key)
 }
 \arguments{
   \item{cache}{Logical}
@@ -10,7 +10,7 @@
   \item{key}{Key from url + args}
 }
 \description{
-  goredis
+Get redis cached data
 }
 \keyword{internal}
 

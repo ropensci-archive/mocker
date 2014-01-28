@@ -1,16 +1,18 @@
-\name{goSqlite}
-\alias{goSqlite}
+\name{get_sqlite}
+\alias{get_sqlite}
 \title{Get value from SQlite storage based on key}
 \usage{
-  goSqlite(cache, key)
+get_sqlite(cache, key, db)
 }
 \arguments{
   \item{cache}{Logical}
 
   \item{key}{Key from url + args}
+
+  \item{db}{Database name}
 }
 \description{
-  Get value from SQlite storage based on key
+Get value from SQlite storage based on key
 }
 \keyword{internal}
 
