@@ -13,7 +13,8 @@ cache_save(cache, key, obj, backend, path, db)
 
   \item{backend}{One of local, redis, couchdb.}
 
-  \item{path}{Path}
+  \item{path}{Path for local storage. Only used when
+  backend='local'}
 
   \item{db}{Database name for CouchDB or SQLlite}
 }

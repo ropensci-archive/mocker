@@ -54,7 +54,7 @@ cachefxn <- function(q="*:*", db=NULL, cache=FALSE, backend='local', path)
 {
   # get api query ready
   url = "http://api.plos.org/search"
-  args <- list(q=q, fl='id,author,abstract', fq='doc_type:full', wt='json', limit=50)
+  args <- list(q=q, fl='id,author,abstract', fq='doc_type:full', wt='json', limit=100)
   
   # create a key
   cachekey <- make_key(url, args)

@@ -4,7 +4,7 @@
 #' @param key Key from url + args 
 #' @param obj Object to save
 #' @param backend One of local, redis, couchdb.
-#' @param path Path
+#' @param path Path for local storage. Only used when backend='local'
 #' @param db Database name for CouchDB or SQLlite
 #' @export
 cache_save <- function(cache, key, obj, backend, path, db)

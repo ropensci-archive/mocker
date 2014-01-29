@@ -12,7 +12,7 @@ library(webcache)
 
 ## Install redis
 
-### using brew, works on osx at least
+### using brew (OSX)
 
 or [their site](http://redis.io/download) for other options.
 
@@ -20,7 +20,7 @@ or [their site](http://redis.io/download) for other options.
 brew install redis
 ```
 
-### If using redis, remember to start redis on your cli
+### Remember to start Redis on your cli
 
 ```bash
 redis-server 
@@ -33,6 +33,26 @@ sudo npm install -g redis-commander
 redis-commander
 ```
 
+## Install CouchDB
+
+### using brew (OSX)
+
+```bash
+brew install couchdb
+```
+
+### Remember to start CouchDB on your cli
+
+```bash
+couchdb 
+```
+
+A CouchDB admin panel in your browser, Futon, comes with CouchDB. You can access it in your browser at `localhost:5984/_utils`. A new dashboard replacement called Fauxton, from Cloudant, can be installed from [NPM](https://npmjs.org/package/fauxton), and is found at `localhost:5984/_utils/fauxton/`.
+
+```bash
+npm install fauxton
+```
+
 ## Examples
 
 ### Define query
@@ -41,7 +61,9 @@ redis-commander
 q <- "theory"
 ```
 
-### Local storage via digest::digest, the default, 1st run with cache=TRUE same as cache=FALSE, then 2nd time faster
+### Local storage via `saveRDS`
+
+This is the default, 1st run with `cache=TRUE` same as `cache=FALSE`, then 2nd time faster. Same for any backend option.
 
 ```coffee
 system.time( cachefxn(q=q, cache=TRUE, path="~/scottscache/") )
@@ -60,7 +82,7 @@ system.time( cachefxn(q=q, cache=TRUE, path="~/scottscache/") )
   0.004   0.000   0.005
 ```
 
-### Using local storage via R.cache
+### Local storage via R.cache
 
 ```coffee
 system.time( cachefxn(q=q, cache=TRUE, backend="rcache") )
@@ -80,7 +102,7 @@ system.time( cachefxn(q=q, cache=TRUE, backend="rcache") )
   0.006   0.000   0.006 
 ```
 
-### Using redis, redis should be a little bit faster
+### Redis
 
 NOTE: startup redis in your shell first
 
@@ -102,7 +124,7 @@ system.time( cachefxn(q=q, cache=TRUE, backend="redis") )
   0.007   0.001   0.007 
 ```
 
-### Using sqlite, quite a bit slower than local and redis
+### SQLite
 
 ```coffee
 library(filehashSQLite)
@@ -125,7 +147,7 @@ system.time( cachefxn(q=q, cache=TRUE, backend="sqlite", db=sqldb) )
   0.014   0.000   0.014
 ```
 
-### Using couchdb, slower than local and redis, about same speed as sqlite
+### CouchDB
 
 NOTE: startup couchdb in your shell first
 
@@ -157,7 +179,7 @@ With `microbenchmark`
 library(microbenchmark)
 microbenchmark(
  local=cachefxn(q=q, cache=TRUE, path="~/scottscache/"),
- rcache=cachefxn(q=q, cache=TRUE, backend="rcache"),
+ R.cache=cachefxn(q=q, cache=TRUE, backend="rcache"),
  redis=cachefxn(q=q, cache=TRUE, backend="redis"),
  sqlite=cachefxn(q=q, cache=TRUE, backend="sqlite", db=sqldb),
  couchdb=cachefxn(q=q, cache=TRUE, backend="couchdb", db=cdb),
@@ -169,15 +191,17 @@ microbenchmark(
 Unit: milliseconds
     expr       min        lq    median        uq       max neval
    local  4.007978  4.278275  4.362870  4.816612  6.675667    50
-  rcache  4.461892  4.824427  5.038775  5.801503  8.543470    50
+  R.cache  4.461892  4.824427  5.038775  5.801503  8.543470    50
    redis  5.624845  6.146504  6.401435  7.075442  9.408585    50
   sqlite 10.074079 10.652784 11.210765 12.425844 18.450480    50
  couchdb 25.964903 27.661443 29.219574 32.668773 36.355845    50
 ```
 
+Indeed, local caching is fastest, either via the simplest of writing files via `saveRDS` ("local"), or via R.cache. However, Redis isn't far behind, and could offer more flexibility over simple file storage if you are interested. SQLite and CouchDB probably aren't worth it unless you really need them. 
+
 ## Explanation of the cachefxn function
 
-I.e., how would you incorporate this into a package or your scripts
+i.e., how you could incorporate this into a package or a script
 
 Here's the function inside this package that is like one we would use to make a web API call, with explanation.  The two additional arguments needed beyond whatever is already in a fxn are `cache` and `backend`. 
 
@@ -205,4 +229,4 @@ cachefxn <- function(q="*:*", db=NULL, cache=FALSE, backend='local', path)
     return( temp )
   }
 }
-``` 
+```
