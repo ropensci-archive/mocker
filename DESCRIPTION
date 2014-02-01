@@ -1,6 +1,6 @@
-Package: webcache
+Package: mocker
 Version: 0.0.5
-Date: 2014-01-27
+Date: 2014-01-31
 Title: Cache calls to the web
 Description: Cache calls to the web
 License: CC0

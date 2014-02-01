@@ -1,13 +1,13 @@
-webcache
+mocker
 =========
 
-## Install webcache
+## Install mocker
 
 ```coffee
 install.packages("devtools")
 library(devtools)
-install_github("ropensci/webcache")
-library(webcache)
+install_github("ropensci/mocker")
+library(mocker)
 ```
 
 ## Install redis
