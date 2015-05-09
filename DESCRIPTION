@@ -5,7 +5,7 @@ Title: Cache calls to the web
 Description: Cache calls to the web
 License: CC0
 Authors@R: c(person("Scott", "Chamberlain", role = c("aut", "cre"), email =
-    "myrmecocystus@gmail.com"), person("Carl", "Boettiger", role = c("auth"), 
+    "myrmecocystus@gmail.com"), person("Carl", "Boettiger", role = c("aut"), 
     email = "cboettig@gmail.com"), person("Karthik", "Ram", role =
     "aut"), person("Edmund", "Hart", role="aut"))
 LazyLoad: yes
